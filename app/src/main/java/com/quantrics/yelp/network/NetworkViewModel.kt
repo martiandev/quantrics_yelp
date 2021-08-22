@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.quantrics.yelp.app.Yelp
 import com.quantrics.yelp.model.Business
+import com.quantrics.yelp.preference.YelpPreference
 import io.reactivex.disposables.CompositeDisposable
 import retrofit2.Call
 import retrofit2.Callback
@@ -16,6 +17,8 @@ class NetworkViewModel: ViewModel
 {
     @Inject
     lateinit var yelpService: YelpService
+    @Inject
+    lateinit var preference: YelpPreference
     var businesses = MutableLiveData<List<Business>>()
     protected val compositeDisposable = CompositeDisposable()
 
@@ -27,7 +30,7 @@ class NetworkViewModel: ViewModel
     fun search()
     {
 
-        yelpService.searchBusiness("Bearer aakTWiUma-QmuYNfAcBDW4j2LxkRSCUjLEo7-ULt9KQ36MFzlGYL1q9oAdKekKvtdSlq79GwQZ3PAFBzsX99C5Qaf8tSLBoGhNpo9EIQwJJRnB7v3Obz6lmkTF8gYXYx","test",
+        yelpService.searchBusiness("Bearer "+preference.getAuth(),"test",
             "PH",
             null,
             null,
@@ -46,15 +49,29 @@ class NetworkViewModel: ViewModel
                 call: Call<BusinessResponse>,
                 response: Response<BusinessResponse>
             ) {
-                Log.i("SUCCESS:",""+response.body()!!.businesses.size);
+                onResponse(response)
             }
-
-            override fun onFailure(call: Call<BusinessResponse>, t: Throwable) {
-                Log.i("FAILED:",t.localizedMessage);
-            }
-
+            override fun onFailure(call: Call<BusinessResponse>, t: Throwable) { onFail(call,t) }
         })
 
+    }
+
+    fun onResponse( response: Response<BusinessResponse>)
+    {
+        if(response.body()!!.businesses.size>0)
+        {
+            var list = response.body()!!.businesses.toList()
+            businesses.postValue(list)
+        }
+        else
+        {
+            businesses.postValue(listOf())
+        }
+
+    }
+    fun onFail(call: Call<BusinessResponse>, t: Throwable)
+    {
+        businesses.postValue(listOf())
     }
 
 }

@@ -10,6 +10,8 @@ import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
+import androidx.lifecycle.Observer
 import com.quantrics.yelp.app.Yelp
 import com.quantrics.yelp.databinding.ActivityMainBinding
 import com.quantrics.yelp.network.BusinessResponse
@@ -42,7 +44,10 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(binding.toolbar)
 
 
+        nvm.businesses.observe(this, Observer {
 
+            Toast.makeText(baseContext,"Total:"+it.size,Toast.LENGTH_LONG).show()
+        })
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         appBarConfiguration = AppBarConfiguration(navController.graph)
         setupActionBarWithNavController(navController, appBarConfiguration)
