@@ -27,10 +27,22 @@ class NetworkViewModel: ViewModel
         yelp.appComponent.inject(this)
     }
 
+    fun getAuth():String
+    {
+        return  "Bearer "+preference.getAuth()
+    }
+
+    fun search(request: BusinessRequest)
+    {
+
+
+    }
+
+
     fun search()
     {
 
-        yelpService.searchBusiness("Bearer "+preference.getAuth(),"test",
+        yelpService.searchBusiness(getAuth(),"",
             "PH",
             null,
             null,

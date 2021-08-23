@@ -1,6 +1,7 @@
 package com.quantrics.yelp.app
 
 import android.app.Application
+import com.quantrics.yelp.location.LocationModule
 import com.quantrics.yelp.network.NetworkModule
 import com.quantrics.yelp.preference.PreferenceModule
 
@@ -11,6 +12,7 @@ class Yelp : Application()
             .builder()
             .networkModule(networkModule)
             .preferenceModule(preferenceModule)
+            .locationModule(locationModule)
             .build()
 
     }
@@ -22,6 +24,10 @@ class Yelp : Application()
 
     open val preferenceModule by lazy{
         PreferenceModule(this)
+    }
+
+    open val locationModule by lazy{
+        LocationModule(this)
     }
 
     override fun onCreate() {

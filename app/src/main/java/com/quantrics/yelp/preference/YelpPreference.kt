@@ -13,6 +13,8 @@ class YelpPreference
         val TAG_PREFERENCE  = "YELP"
         val TAG_AUTH        = "Authorization"
         val TAG_LOCATION    = "Location"
+        val TAG_LONG        = "Longitude"
+        val TAG_LAT         = "Latitude"
         val TAG_RADIUS      = "Radius"
         val TAG_LIMIT       = "Limit"
         val TAG_OPEN        = "Open"
@@ -65,6 +67,19 @@ class YelpPreference
     {
         editor.putBoolean(TAG_OPEN,value!!).commit()
     }
-
+    fun getLat():Double?{
+        return  sharedPreference.getString(TAG_LAT,"0.0")!!.toDouble()
+    }
+    fun setLat(value:Double?)
+    {
+        editor.putString(TAG_LAT,""+value!!).commit()
+    }
+    fun getLon():Double?{
+        return  sharedPreference.getString(TAG_LONG,"0.0")!!.toDouble()
+    }
+    fun setLon(value:Double?)
+    {
+        editor.putString(TAG_LONG,""+value!!).commit()
+    }
 
 }
