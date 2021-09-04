@@ -2,36 +2,21 @@ package com.quantrics.yelp
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.navigation.ui.AppBarConfiguration
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.SearchView
-import android.widget.Toast
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.Observer
 import com.quantrics.yelp.app.Yelp
 import com.quantrics.yelp.databinding.ActivityMainBinding
 import com.quantrics.yelp.network.NetworkViewModel
 import com.quantrics.yelp.preference.YelpPreference
 import javax.inject.Inject
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.quantrics.yelp.view.fragment.MapFragment
 import com.quantrics.yelp.view.fragment.SplashFragment
 import com.quantrics.yelp.view.fragment.ViewPagerFragment
-import android.text.TextUtils
-
-
-
 
 
 class MainActivity : AppCompatActivity() {
@@ -39,7 +24,7 @@ class MainActivity : AppCompatActivity() {
 
     var bottom_nav: BottomNavigationView? = null
     var menu:Menu? = null
-    var searchString:String = ""
+
     @Inject
     lateinit var  nvm:NetworkViewModel
     @Inject
@@ -122,20 +107,11 @@ class MainActivity : AppCompatActivity() {
         val searchView: SearchView = menu.findItem(R.id.action_search).getActionView() as SearchView
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
-//                        nvm.search()
-                Log.i("GPS","SEARCH SUBMITTED")
-
-                searchString=query
-
+                nvm.search(query)
                 return true
             }
 
             override fun onQueryTextChange(newText: String): Boolean {
-                if (!TextUtils.isEmpty(newText))
-                {
-                    Log.i("GPS","SEARCH :"+newText)
-                }
-
                 return true
             }
         })
@@ -154,15 +130,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
-//    override fun onLocationChanged(p0: Location) {
-//        preference.setLat(p0.latitude)
-//        preference.setLon(p0.longitude)
-//        Log.i("GPS","LAT:"+preference.getLat())
-//        Log.i("GPS","LONG:"+preference.getLon())
-//        nvm.search(searchString)
-//    }
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -175,6 +142,10 @@ class MainActivity : AppCompatActivity() {
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     showViewPager()
                     setBottomNavigation()
+                }
+                else
+                {
+                    startSplash()
                 }
             }
         }

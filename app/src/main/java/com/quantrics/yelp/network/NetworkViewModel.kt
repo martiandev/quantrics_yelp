@@ -96,7 +96,28 @@ class NetworkViewModel: ViewModel
         if(response.body()!!.businesses.size>0)
         {
             var list = response.body()!!.businesses.toList()
-            businesses.postValue(list)
+            var result = listOf<Business>()
+            if(preference.getDistance()!!)
+            {
+
+                result = list.sortedBy { it.distance }
+
+            }
+            else if (preference.getRating()!!)
+            {
+                result = list.sortedBy { it.rating }.reversed()
+                for(b in result)
+                {
+                    Log.i("YELP",b.name+" : "+b.rating)
+                }
+            }
+            else
+            {
+                result = list
+
+            }
+
+            businesses.postValue(result)
         }
         else
         {
