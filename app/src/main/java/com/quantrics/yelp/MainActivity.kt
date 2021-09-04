@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -11,6 +12,7 @@ import androidx.navigation.ui.AppBarConfiguration
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.SearchView
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.Observer
@@ -26,41 +28,40 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.quantrics.yelp.view.fragment.MapFragment
 import com.quantrics.yelp.view.fragment.SplashFragment
 import com.quantrics.yelp.view.fragment.ViewPagerFragment
+import android.text.TextUtils
 
 
-class MainActivity : AppCompatActivity(),LocationListener {
+
+
+
+class MainActivity : AppCompatActivity() {
 
 
     var bottom_nav: BottomNavigationView? = null
     var menu:Menu? = null
+    var searchString:String = ""
     @Inject
     lateinit var  nvm:NetworkViewModel
     @Inject
     lateinit var preference:YelpPreference
+    @Inject
+    lateinit var provider:String
 
     var vpFragment:ViewPagerFragment? = null
 
 
-    private lateinit var appBarConfiguration: AppBarConfiguration
+
     private lateinit var binding: ActivityMainBinding
 
-    private fun addMarkers(googleMap: GoogleMap) {
-
-            val marker = googleMap.addMarker(
-                MarkerOptions()
-                    .title("Test")
-                    .position(LatLng("14.384457200000002".toDouble(),"120.8616776".toDouble()))
-            )
-
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        (application as Yelp).appComponent.inject(this)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         bottom_nav = findViewById(R.id.bottom_nav)
+        bottom_nav!!.visibility = View.GONE
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
         {
             startSplash()
@@ -71,14 +72,6 @@ class MainActivity : AppCompatActivity(),LocationListener {
             setBottomNavigation()
         }
 
-
-        nvm.businesses.observe(this, Observer {
-            Toast.makeText(baseContext,"Total:"+it.size,Toast.LENGTH_LONG).show()
-        })
-//        val navController = findNavController(R.id.nav_host_fragment_content_main)
-//        appBarConfiguration = AppBarConfiguration(navController.graph)
-//        setupActionBarWithNavController(navController, appBarConfiguration)
-
     }
 
 
@@ -86,13 +79,13 @@ class MainActivity : AppCompatActivity(),LocationListener {
     fun startSplash()
     {
         binding.toolbar.visibility= View.GONE
-        binding.fab.visibility = View.GONE
         var splash:SplashFragment = SplashFragment()
         supportFragmentManager.beginTransaction().add(R.id.ll_main,splash,"SPLASH").commit()
 
     }
     fun showViewPager()
     {
+        (application as Yelp).appComponent.inject(this)
         vpFragment = ViewPagerFragment(bottom_nav!!)
         binding.toolbar.visibility= View.VISIBLE
         if(supportFragmentManager.findFragmentById(R.id.ll_main)!=null)
@@ -108,41 +101,51 @@ class MainActivity : AppCompatActivity(),LocationListener {
 
     fun setBottomNavigation()
     {
-
-
+        bottom_nav!!.visibility = View.VISIBLE
         vpFragment!!.bottom_nav = this.bottom_nav
-//        bottom_nav!!.setOnNavigationItemSelectedListener (vpFragment!!)
         bottom_nav!!.setOnNavigationItemSelectedListener {
             vpFragment!!.selectItem(it.itemId)
             true
         }
         menu = bottom_nav!!.menu
-
-        menu!!.add(Menu.NONE,0, Menu.NONE, getString(R.string.list))
-            .setIcon(R.drawable.list)
-        menu!!.add(Menu.NONE,1, Menu.NONE,getString(R.string.map))
+        menu!!.add(Menu.NONE,0, Menu.NONE,getString(R.string.map))
             .setIcon(R.drawable.map)
+        menu!!.add(Menu.NONE,1, Menu.NONE, getString(R.string.list))
+            .setIcon(R.drawable.list)
         menu!!.add(Menu.NONE,2, Menu.NONE,getString(R.string.settings))
             .setIcon(R.drawable.setttings)
     }
 
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
+        val searchView: SearchView = menu.findItem(R.id.action_search).getActionView() as SearchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+//                        nvm.search()
+                Log.i("GPS","SEARCH SUBMITTED")
+
+                searchString=query
+
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                if (!TextUtils.isEmpty(newText))
+                {
+                    Log.i("GPS","SEARCH :"+newText)
+                }
+
+                return true
+            }
+        })
+
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        Log.i("GPS","ID:"+item.itemId)
-        Log.i("GPS","ID:"+R.id.action_settings)
         return when (item.itemId) {
-            R.id.action_settings -> {
-
-                    vpFragment!!.selectItem(2)
+            R.id.action_search -> {
 
                 true
             }
@@ -150,53 +153,14 @@ class MainActivity : AppCompatActivity(),LocationListener {
         }
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-//        val navController = findNavController(R.id.nav_host_fragment_content_main)
-//        return navController.navigateUp(appBarConfiguration)
-//                || super.onSupportNavigateUp()
-        return super.onSupportNavigateUp()
-    }
-
-    override fun onLocationChanged(p0: Location) {
-        preference.setLat(p0.latitude)
-        preference.setLon(p0.longitude)
-        Log.i("GPS","LAT:"+preference.getLat())
-        Log.i("GPS","LONG:"+preference.getLon())
-    }
 
 
-//    fun setUpGPS()
-//    {
-//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-//        {
-//            ActivityCompat.requestPermissions(this,
-//                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION),
-//                303);
-//        }
-//        else
-//        {
-////            Log.i("GPS","REQUESTING")
-////            locationManager!!.getLastKnownLocation(provider!!)
-//
-//        }
-//    }
-
-//    fun getCoordinates()
-//    {
-//
-//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-//        {
-//            ActivityCompat.requestPermissions(this,
-//                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION),
-//                303);
-//        }
-//        else
-//        {
-////            Log.i("GPS","REQUESTING")
-//////            locationManager!!.getLastKnownLocation(provider!!)
-////
-////            locationManager!!.requestLocationUpdates(provider!!, 0, 100f, this);
-//        }
+//    override fun onLocationChanged(p0: Location) {
+//        preference.setLat(p0.latitude)
+//        preference.setLon(p0.longitude)
+//        Log.i("GPS","LAT:"+preference.getLat())
+//        Log.i("GPS","LONG:"+preference.getLon())
+//        nvm.search(searchString)
 //    }
 
     override fun onRequestPermissionsResult(
@@ -209,23 +173,12 @@ class MainActivity : AppCompatActivity(),LocationListener {
         {
             303 ->{
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
-//                    getCoordinates()
                     showViewPager()
+                    setBottomNavigation()
                 }
             }
         }
 
     }
 
-    override fun onProviderEnabled(provider: String) {
-        Log.i("GPS","Provider Enabled:"+provider)
-    }
-
-    override fun onProviderDisabled(provider: String) {
-        Log.i("GPS","Provider Disabled:"+provider)
-    }
-
-    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {
-        Log.i("GPS","Provider Status changed:"+provider)
-    }
 }

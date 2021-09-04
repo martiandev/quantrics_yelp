@@ -6,6 +6,8 @@ import com.quantrics.yelp.network.NetworkModule
 import com.quantrics.yelp.network.NetworkViewModel
 import com.quantrics.yelp.preference.PreferenceModule
 import com.quantrics.yelp.view.fragment.MapFragment
+import com.quantrics.yelp.view.fragment.SearchResultFragment
+import com.quantrics.yelp.view.fragment.SettingsFragment
 import dagger.Component
 
 
@@ -19,5 +21,7 @@ interface AppComponent {
     fun inject(mainActivity: MainActivity?)
     fun inject(networkViewModel: NetworkViewModel?)
     fun inject(mapFragment: MapFragment?)
+    fun inject(settingsFragment: SettingsFragment?)
+    fun inject(searchResultFragment: SearchResultFragment?)
 
 }

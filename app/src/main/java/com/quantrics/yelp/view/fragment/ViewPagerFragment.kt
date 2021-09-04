@@ -1,6 +1,7 @@
 package com.quantrics.yelp.view.fragment
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
@@ -11,14 +12,22 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.navigation.NavigationView
 import com.quantrics.yelp.R
+import com.quantrics.yelp.model.Business
+import com.quantrics.yelp.network.NetworkViewModel
 import com.quantrics.yelp.view.adapter.HomePagerAdapter
+import javax.inject.Inject
 
-class ViewPagerFragment:Fragment {
-
+class ViewPagerFragment:Fragment
+{
+    @Inject
+    lateinit var  nvm: NetworkViewModel
     var viewPager: ViewPager2? = null
     var adapter: HomePagerAdapter? = null
 
     var bottom_nav: BottomNavigationView? = null
+
+    var search:SearchResultFragment? = null;
+    var mapFragment:MapFragment? = null
 
     constructor(bottom_nav: BottomNavigationView):this()
     {
@@ -27,6 +36,15 @@ class ViewPagerFragment:Fragment {
 
     constructor()
     {}
+
+
+
+    fun updateBusinesses(businesses:List<Business>)
+    {
+        Log.i("GPS","ADDING VP:"+businesses.size)
+        mapFragment!!.updateBusinessses(businesses)
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -44,8 +62,11 @@ class ViewPagerFragment:Fragment {
 
     fun setFragments() {
         var list: ArrayList<Fragment> = ArrayList()
-        list.add(SearchResultFragment())
-        list.add(MapFragment())
+        search = SearchResultFragment()
+        mapFragment = MapFragment()
+        list.add(mapFragment!!)
+        list.add(search!!)
+
         list.add(SettingsFragment())
         adapter = HomePagerAdapter(requireActivity(), list)
         viewPager!!.adapter = adapter
@@ -56,11 +77,18 @@ class ViewPagerFragment:Fragment {
             }
         }
         )
+
     }
+
 
     fun selectItem(i: Int)
     {
         viewPager!!.currentItem = i
+    }
+
+    fun search(term:String)
+    {
+            nvm.search(term)
     }
 
 

@@ -24,7 +24,10 @@ class NetworkModule @Inject constructor(var app: Yelp, var baseUrl:String)
 
     @Provides
     fun provideRetrofit(gson: Gson?): Retrofit {
+
         val logging = HttpLoggingInterceptor()
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
         val httpClient = OkHttpClient.Builder()
         httpClient.addInterceptor(logging);
         return Retrofit.Builder()

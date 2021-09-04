@@ -12,12 +12,12 @@ class YelpPreference
     {
         val TAG_PREFERENCE  = "YELP"
         val TAG_AUTH        = "Authorization"
-        val TAG_LOCATION    = "Location"
         val TAG_LONG        = "Longitude"
         val TAG_LAT         = "Latitude"
         val TAG_RADIUS      = "Radius"
-        val TAG_LIMIT       = "Limit"
         val TAG_OPEN        = "Open"
+        val TAG_DISTANCE    = "Distance"
+        val TAG_RATING      = "Rating"
     }
 
 
@@ -31,13 +31,6 @@ class YelpPreference
 
 
 
-    fun getLocation():String?{
-        return  sharedPreference.getString(TAG_LOCATION,null)
-    }
-    fun setLocation(value:String)
-    {
-        editor.putString(TAG_LOCATION,value).commit()
-    }
     fun getRadius():Int?{
         return  sharedPreference.getInt(TAG_RADIUS,0)
     }
@@ -49,17 +42,6 @@ class YelpPreference
         }
         editor.putInt(TAG_RADIUS,value!!).commit()
     }
-    fun getLimit():Int?{
-        return  sharedPreference.getInt(TAG_LIMIT,0)
-    }
-    fun setLimit(value:Int?)
-    {
-        if(value==null)
-        {
-            editor.putInt(TAG_LIMIT,0).commit()
-        }
-        editor.putInt(TAG_LIMIT,value!!).commit()
-    }
     fun getOpen():Boolean?{
         return  sharedPreference.getBoolean(TAG_OPEN,false)
     }
@@ -67,6 +49,22 @@ class YelpPreference
     {
         editor.putBoolean(TAG_OPEN,value!!).commit()
     }
+    fun getDistance():Boolean?{
+        return  sharedPreference.getBoolean(TAG_DISTANCE,false)
+    }
+    fun setDistance(value:Boolean?)
+    {
+        editor.putBoolean(TAG_DISTANCE,value!!).commit()
+    }
+
+    fun getRating():Boolean?{
+        return  sharedPreference.getBoolean(TAG_RATING,false)
+    }
+    fun setRating(value:Boolean?)
+    {
+        editor.putBoolean(TAG_RATING,value!!).commit()
+    }
+
     fun getLat():Double?{
         return  sharedPreference.getString(TAG_LAT,"0.0")!!.toDouble()
     }
