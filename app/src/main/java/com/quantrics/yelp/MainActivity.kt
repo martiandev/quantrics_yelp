@@ -156,7 +156,7 @@ class MainActivity : AppCompatActivity(),ClickListener,MapRequestListener{
         menu!!.add(Menu.NONE,1, Menu.NONE, getString(R.string.list))
             .setIcon(R.drawable.list)
         menu!!.add(Menu.NONE,2, Menu.NONE,getString(R.string.settings))
-            .setIcon(R.drawable.setttings)
+            .setIcon(R.drawable.setting)
     }
 
 
