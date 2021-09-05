@@ -11,7 +11,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-
+android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:theme="@style/Theme.Yelp.AppBarOverlay">
@@ -31,13 +31,34 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
 
-    <include layout="@layout/content_main" />
+    <LinearLayout
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/app_bar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/v_divider"
+        android:orientation="horizontal"
+        android:id="@+id/ll_main"
+        android:layout_width="0dp"
+        android:layout_height="0dp"/>
+    <LinearLayout
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/app_bar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:orientation="horizontal"
+        android:id="@+id/ll_detail"
+        android:layout_width="0dp"
+        android:layout_height="0dp"/>
+<!--    <include-->
+<!--        app:layout_constraintTop_toBottomOf="@+id/app_bar"-->
+<!--        -->
+<!--        app:layout_constraintBottom_toTopOf="@+id/v_divider"-->
+<!--        layout="@layout/content_main" />-->
 
 
     <View
         android:id="@+id/v_divider"
-        android:layout_marginLeft="4dp"
-        android:layout_marginRight="4dp"
+
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/gl_bottom"

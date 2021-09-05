@@ -1,19 +1,17 @@
 package com.quantrics.yelp.network
 
-import android.Manifest
-import android.content.pm.PackageManager
-import android.location.Location
-import android.location.LocationListener
+
 import android.location.LocationManager
-import android.os.Bundle
 import android.util.Log
-import androidx.core.app.ActivityCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.google.gson.Gson
 import com.quantrics.yelp.app.Yelp
 import com.quantrics.yelp.model.Business
+import com.quantrics.yelp.model.BusinessDetail
 import com.quantrics.yelp.preference.YelpPreference
 import io.reactivex.disposables.CompositeDisposable
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -22,10 +20,13 @@ import javax.inject.Inject
 class NetworkViewModel: ViewModel
 {
     @Inject
+    lateinit var gson:Gson
+    @Inject
     lateinit var yelpService: YelpService
     @Inject
     lateinit var preference: YelpPreference
     var businesses = MutableLiveData<List<Business>>()
+    var detail = MutableLiveData<BusinessDetail>()
     @Inject
     lateinit var locationManager: LocationManager
     @Inject
@@ -44,7 +45,26 @@ class NetworkViewModel: ViewModel
     {
         return  "Bearer "+preference.getAuth()
     }
+    fun searchDetail(id:String)
+    {
+        yelpService.searchBusinessDetail(getAuth(),
+            id
+        ).enqueue(object : Callback<ResponseBody> {
+            override fun onResponse(
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
+            ) {
 
+                val m: BusinessDetail = gson.fromJson(response.body()!!.string(), BusinessDetail::class.java)
+                detail.postValue(m)
+
+
+            }
+            override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+
+            }
+        })
+    }
     fun search(term: String)
     {
         this.term = term
@@ -70,7 +90,7 @@ class NetworkViewModel: ViewModel
             radius,
             null,
             null,
-            30,
+            20,
             null,
             null,
             null,
@@ -92,7 +112,6 @@ class NetworkViewModel: ViewModel
 
     fun onResponse( response: Response<BusinessResponse>)
     {
-        Log.i("GPS","SUCCESSS API:"+response.body()!!.businesses.size)
         if(response.body()!!.businesses.size>0)
         {
             var list = response.body()!!.businesses.toList()
@@ -106,10 +125,6 @@ class NetworkViewModel: ViewModel
             else if (preference.getRating()!!)
             {
                 result = list.sortedBy { it.rating }.reversed()
-                for(b in result)
-                {
-                    Log.i("YELP",b.name+" : "+b.rating)
-                }
             }
             else
             {

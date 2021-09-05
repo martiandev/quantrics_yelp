@@ -4,6 +4,7 @@ import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 //rFO7MUtHGA4nwlMWEUWmLQ
@@ -30,6 +31,12 @@ interface YelpService
         @Query("open_at") openAt:Int?,
         @Query("attributes") arttributes:String?
     ): Call<BusinessResponse>
+    @GET("businesses/{id}")
+    fun searchBusinessDetail(
+        @Header("authorization") token:String?,
+        @Path("id") id:String?,
+
+        ): Call<ResponseBody>
 
 
 }

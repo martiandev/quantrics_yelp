@@ -18,6 +18,7 @@ class YelpPreference
         val TAG_OPEN        = "Open"
         val TAG_DISTANCE    = "Distance"
         val TAG_RATING      = "Rating"
+        val TAG_CAMERA      = "Camera"
     }
 
 
@@ -29,8 +30,18 @@ class YelpPreference
         editor.putString(TAG_AUTH,value).commit()
     }
 
-
-
+    fun getCamera():Float
+    {
+        return sharedPreference.getFloat(TAG_CAMERA,15f)
+    }
+    fun setCamera(value:Float?)
+    {
+        if(value==null)
+        {
+            editor.putFloat(TAG_CAMERA,15f).commit()
+        }
+        editor.putFloat(TAG_CAMERA,value!!).commit()
+    }
     fun getRadius():Int?{
         return  sharedPreference.getInt(TAG_RADIUS,0)
     }

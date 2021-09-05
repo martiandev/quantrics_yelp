@@ -15,6 +15,7 @@ import androidx.lifecycle.Observer
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import com.quantrics.yelp.app.Yelp
@@ -26,106 +27,131 @@ import javax.inject.Inject
 class MapFragment:SupportMapFragment(),
         LocationListener
 {
-    var businesses:List<Business>  = listOf()
-
+    //======================================== Variable ============================================
+    //injected
     @Inject
     lateinit var locationManager: LocationManager
     @Inject
     lateinit var provider:String
     @Inject
     lateinit var preference:YelpPreference
-
-    private fun addMarkers(googleMap: GoogleMap,b:Business) {
-
-            val marker = googleMap.addMarker(
-                MarkerOptions()
-                    .title(b.name)
-                    .position(LatLng(b.coordinates!!.latitude!!,b.coordinates!!.longitude!!))
-            )
-
-
-    }
-
-    fun updateBusinessses(businesses:List<Business>)
-    {
-        recenter()
-        Log.i("GPS","ADDING MFrAGMNet:"+businesses.size)
-
-        this.businesses=businesses
-        getMapAsync{
-                googleMap ->
-            run {
-                googleMap.setOnMapLoadedCallback {
-                for(b in this.businesses)
-                {
-                    addMarkers(googleMap,b)
-                }
-
-
-                }
-            }
-        }
-    }
-
+    //search results
+    var businesses:List<Business>  = listOf()
+    //GoogleMap
+    var gmap:GoogleMap? = null
+    //==============================================================================================
+    //========================================= Lifecycle ==========================================
     override fun onAttach(context: Context) {
         super.onAttach(context)
         (requireActivity().application as Yelp).appComponent.inject(this)
         updateCoordinates()
 
     }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
-        fun updateCoordinates()
-        {
-            if (ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
-            {
-                ActivityCompat.requestPermissions(requireActivity(),
-                    arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
-                    303);
+        getMapAsync{
+            gmap = it
+            gmap!!.setOnMapLoadedCallback {
+                recenter()
             }
-            else
-            {
-                locationManager!!.requestLocationUpdates(provider!!, 0, 100f, this);
+            gmap!!.setOnInfoWindowClickListener {
+
             }
-            recenter()
         }
 
+    }
+    //==============================================================================================
+    //======================================= Map Control ==========================================
 
 
 
     fun recenter()
     {
-        getMapAsync{
-                googleMap ->
-            run {
-                googleMap.setOnMapLoadedCallback {
+        if(gmap!=null)
+        {
+            gmap!!.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                LatLng(
+                    preference.getLat()!!,
+                    preference.getLon()!!
+                ), 10f
+            ))
+            gmap!!.addMarker(
+                MarkerOptions()
+                    .title("You are here")
+                    .position(LatLng(preference.getLat()!!,preference.getLon()!!)))
 
-                    googleMap.moveCamera(
-                        CameraUpdateFactory.newLatLngZoom(
-                            LatLng(
-                                preference.getLat()!!,
-                                preference.getLon()!!
-                            ), 15f
-                        )
-                    )
-
-                }
-            }
         }
-    }
-
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
 
     }
-
+    //==============================================================================================
+    //========================================= Location ===========================================
+    fun updateCoordinates()
+    {
+        if (ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
+            ActivityCompat.requestPermissions(requireActivity(),
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION),
+                303);
+        }
+        else
+        {
+            locationManager!!.requestLocationUpdates(provider!!, 0, 100f, this);
+        }
+        recenter()
+    }
+    //----------------------------------------- Location Listener ----------------------------------
     override fun onLocationChanged(p0: Location) {
         preference.setLat(p0.latitude)
         preference.setLon(p0.longitude)
-        Log.i("YELP","COORDINATES:"+preference.getLat()+" : "+preference.getLon())
         recenter()
     }
     override fun onProviderEnabled(provider: String) {}
     override fun onProviderDisabled(provider: String) {}
     override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+    //----------------------------------------------------------------------------------------------
+    //==============================================================================================
+    //===================================== Search Result ==========================================
+    fun updateBusinessses(businesses:List<Business>)
+    {
+        gmap!!.clear()
+        recenter()
+
+        this.businesses=businesses
+        for(b in businesses)
+        {
+            gmap!!.addMarker(
+                        MarkerOptions()
+                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN))
+                            .snippet(""+(Math.round(b!!.distance!!/1000*100)/100.0)+"km")
+                            .title(b.name)
+                            .position(LatLng(b.coordinates!!.latitude!!,b.coordinates!!.longitude!!)))
+
+        }
+
+
+
+    }
+
+    fun findAPlace(name:String,distance:Double,lat:Double,lon:Double)
+    {
+        gmap!!.clear()
+        recenter()
+        gmap!!.addMarker(
+            MarkerOptions()
+                .snippet(""+(Math.round(distance!!/1000*100)/100.0)+"km")
+                .title(name)
+                .position(LatLng(lat,lon)))
+    }
+    //==============================================================================================
+
+
+
+
+
+
+
+
+
+
 }

@@ -14,13 +14,15 @@ import com.google.android.material.navigation.NavigationView
 import com.quantrics.yelp.R
 import com.quantrics.yelp.model.Business
 import com.quantrics.yelp.network.NetworkViewModel
+import com.quantrics.yelp.view.adapter.ClickListener
 import com.quantrics.yelp.view.adapter.HomePagerAdapter
 import javax.inject.Inject
 
-class ViewPagerFragment:Fragment
+class ViewPagerFragment():Fragment()
 {
     @Inject
     lateinit var  nvm: NetworkViewModel
+    lateinit var cl: ClickListener
     var viewPager: ViewPager2? = null
     var adapter: HomePagerAdapter? = null
 
@@ -29,13 +31,12 @@ class ViewPagerFragment:Fragment
     var search:SearchResultFragment? = null;
     var mapFragment:MapFragment? = null
 
-    constructor(bottom_nav: BottomNavigationView):this()
+
+    constructor(bottom_nav: BottomNavigationView,cl:ClickListener):this()
     {
+        this.cl = cl
         this.bottom_nav = bottom_nav
     }
-
-    constructor()
-    {}
 
 
 
@@ -43,6 +44,7 @@ class ViewPagerFragment:Fragment
     {
         Log.i("GPS","ADDING VP:"+businesses.size)
         mapFragment!!.updateBusinessses(businesses)
+        search!!.updateBusinesses(businesses)
     }
 
 
@@ -51,18 +53,20 @@ class ViewPagerFragment:Fragment
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+
         return inflater.inflate(R.layout.fragment_pager, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewPager = view.findViewById(R.id.vp_main)
+        this.viewPager!!.isUserInputEnabled = false
         setFragments()
     }
 
     fun setFragments() {
         var list: ArrayList<Fragment> = ArrayList()
-        search = SearchResultFragment()
+        search = SearchResultFragment(cl)
         mapFragment = MapFragment()
         list.add(mapFragment!!)
         list.add(search!!)

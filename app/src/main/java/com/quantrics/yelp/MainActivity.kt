@@ -3,28 +3,36 @@ package com.quantrics.yelp
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.SearchView
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.Observer
 import com.quantrics.yelp.app.Yelp
 import com.quantrics.yelp.databinding.ActivityMainBinding
 import com.quantrics.yelp.network.NetworkViewModel
 import com.quantrics.yelp.preference.YelpPreference
 import javax.inject.Inject
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.quantrics.yelp.model.Business
+import com.quantrics.yelp.view.adapter.ClickListener
+import com.quantrics.yelp.view.fragment.BusinessSelected
+import com.quantrics.yelp.view.fragment.DetailFragment
 import com.quantrics.yelp.view.fragment.SplashFragment
 import com.quantrics.yelp.view.fragment.ViewPagerFragment
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(),ClickListener{
 
 
     var bottom_nav: BottomNavigationView? = null
     var menu:Menu? = null
-
+    var view_divider:View ? = null
+    var searchView: SearchView? = null
+    var term:String? = null
     @Inject
     lateinit var  nvm:NetworkViewModel
     @Inject
@@ -33,6 +41,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var provider:String
 
     var vpFragment:ViewPagerFragment? = null
+    var detailFragment:DetailFragment? = null
+
 
 
 
@@ -43,9 +53,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
+        detailFragment = DetailFragment()
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
         bottom_nav = findViewById(R.id.bottom_nav)
+        view_divider=findViewById(R.id.v_divider)
         bottom_nav!!.visibility = View.GONE
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)
         {
@@ -71,18 +83,63 @@ class MainActivity : AppCompatActivity() {
     fun showViewPager()
     {
         (application as Yelp).appComponent.inject(this)
-        vpFragment = ViewPagerFragment(bottom_nav!!)
+        nvm.businesses.observe(this, Observer {
+            vpFragment!!.updateBusinesses(it)
+        })
+
+        vpFragment = ViewPagerFragment(bottom_nav!!,this)
         binding.toolbar.visibility= View.VISIBLE
+        view_divider!!.visibility= View.VISIBLE
+        bottom_nav!!.visibility= View.VISIBLE
+        if(searchView!=null)
+        {
+            searchView!!.visibility =View.VISIBLE
+        }
+
+        binding.toolbar.title="Yelp"
+        attachViewPager()
+    }
+
+    fun attachViewPager()
+    {
+        supportActionBar!!.setDisplayHomeAsUpEnabled(false);
+
         if(supportFragmentManager.findFragmentById(R.id.ll_main)!=null)
         {
             supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.ll_main)!!).commit()
+
+        }
+        if(supportFragmentManager.findFragmentById(R.id.ll_detail)!=null)
+        {
+            supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.ll_detail)!!).commit()
+
 
         }
         supportFragmentManager.beginTransaction().add(R.id.ll_main, vpFragment!!,"ViewPager").commit()
     }
 
 
+    override fun onBackPressed() {
+        if(searchView!!.visibility==View.GONE)
+        {
+            supportActionBar!!.setDisplayHomeAsUpEnabled(false)
 
+            binding.toolbar.visibility= View.VISIBLE
+            binding.toolbar.title = "Yelp"
+            view_divider!!.visibility= View.VISIBLE
+            bottom_nav!!.visibility= View.VISIBLE
+            if(searchView!=null)
+            {
+                searchView!!.visibility =View.VISIBLE
+            }
+            if(supportFragmentManager.findFragmentById(R.id.ll_detail)!=null)
+            {
+                supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.ll_detail)!!).commit()
+
+
+            }
+        }
+    }
 
     fun setBottomNavigation()
     {
@@ -104,9 +161,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
-        val searchView: SearchView = menu.findItem(R.id.action_search).getActionView() as SearchView
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        searchView = menu.findItem(R.id.action_search).getActionView() as SearchView
+        searchView!!.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String): Boolean {
+                term = query
                 nvm.search(query)
                 return true
             }
@@ -123,6 +181,11 @@ class MainActivity : AppCompatActivity() {
         return when (item.itemId) {
             R.id.action_search -> {
 
+                true
+            }
+            android.R.id.home ->
+            {
+                onBackPressed()
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -149,6 +212,24 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+    }
+
+    override fun onSelected(b: Business) {
+        supportActionBar!!.setDisplayHomeAsUpEnabled(true)
+        binding.toolbar.title = b.name
+        detailFragment!!.b=b
+        if(supportFragmentManager.findFragmentById(R.id.ll_detail)!=null)
+        {
+            supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.ll_detail)!!).commit()
+
+
+        }
+        view_divider!!.visibility= View.GONE
+        searchView!!.visibility = View.GONE
+        bottom_nav!!.visibility = View.GONE
+        supportFragmentManager.beginTransaction().add(R.id.ll_detail, detailFragment!!,"selection").commit()
+
 
     }
 
