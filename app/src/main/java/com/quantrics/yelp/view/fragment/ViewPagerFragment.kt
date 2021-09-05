@@ -23,7 +23,7 @@ class ViewPagerFragment():Fragment()
     @Inject
     lateinit var  nvm: NetworkViewModel
     lateinit var cl: ClickListener
-    var viewPager: ViewPager2? = null
+    public var viewPager: ViewPager2? = null
     var adapter: HomePagerAdapter? = null
 
     var bottom_nav: BottomNavigationView? = null
@@ -63,11 +63,15 @@ class ViewPagerFragment():Fragment()
         this.viewPager!!.isUserInputEnabled = false
         setFragments()
     }
+    fun showOnMap(b:Business)
+    {
+        mapFragment!!.findAPlace(b.name!!,b.distance!!,b.coordinates!!.latitude!!,b.coordinates!!.longitude!!)
+    }
 
     fun setFragments() {
         var list: ArrayList<Fragment> = ArrayList()
         search = SearchResultFragment(cl)
-        mapFragment = MapFragment()
+        mapFragment = MapFragment(cl)
         list.add(mapFragment!!)
         list.add(search!!)
 

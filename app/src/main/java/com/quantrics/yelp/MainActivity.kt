@@ -19,13 +19,14 @@ import javax.inject.Inject
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.quantrics.yelp.model.Business
 import com.quantrics.yelp.view.adapter.ClickListener
+import com.quantrics.yelp.view.adapter.MapRequestListener
 import com.quantrics.yelp.view.fragment.BusinessSelected
 import com.quantrics.yelp.view.fragment.DetailFragment
 import com.quantrics.yelp.view.fragment.SplashFragment
 import com.quantrics.yelp.view.fragment.ViewPagerFragment
 
 
-class MainActivity : AppCompatActivity(),ClickListener{
+class MainActivity : AppCompatActivity(),ClickListener,MapRequestListener{
 
 
     var bottom_nav: BottomNavigationView? = null
@@ -230,6 +231,26 @@ class MainActivity : AppCompatActivity(),ClickListener{
         bottom_nav!!.visibility = View.GONE
         supportFragmentManager.beginTransaction().add(R.id.ll_detail, detailFragment!!,"selection").commit()
 
+
+    }
+
+    override fun showOnMap(b: Business) {
+        supportActionBar!!.setDisplayHomeAsUpEnabled(false)
+
+        binding.toolbar.visibility= View.VISIBLE
+        binding.toolbar.title = "Yelp"
+        view_divider!!.visibility= View.VISIBLE
+        bottom_nav!!.visibility= View.VISIBLE
+        if(searchView!=null)
+        {
+            searchView!!.visibility =View.VISIBLE
+        }
+        if(supportFragmentManager.findFragmentById(R.id.ll_detail)!=null)
+        {
+            supportFragmentManager.beginTransaction().remove(supportFragmentManager.findFragmentById(R.id.ll_detail)!!).commit()
+        }
+        vpFragment!!.viewPager!!.currentItem=0
+        vpFragment!!.showOnMap(b)
 
     }
 

@@ -22,9 +22,10 @@ import com.quantrics.yelp.app.Yelp
 import com.quantrics.yelp.model.Business
 import com.quantrics.yelp.network.NetworkViewModel
 import com.quantrics.yelp.preference.YelpPreference
+import com.quantrics.yelp.view.adapter.ClickListener
 import javax.inject.Inject
 
-class MapFragment:SupportMapFragment(),
+class MapFragment():SupportMapFragment(),
         LocationListener
 {
     //======================================== Variable ============================================
@@ -39,7 +40,14 @@ class MapFragment:SupportMapFragment(),
     var businesses:List<Business>  = listOf()
     //GoogleMap
     var gmap:GoogleMap? = null
+    lateinit var listener: ClickListener
+
     //==============================================================================================
+    constructor(listener: ClickListener) : this()
+    {
+        this.listener = listener
+    }
+
     //========================================= Lifecycle ==========================================
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -56,7 +64,17 @@ class MapFragment:SupportMapFragment(),
                 recenter()
             }
             gmap!!.setOnInfoWindowClickListener {
-
+                if(listener!=null)
+                {
+                    for(b in businesses)
+                    {
+                        if(b.coordinates!!.latitude==it.position.latitude&&b.coordinates!!.longitude==it.position.longitude)
+                        {
+                            listener.onSelected(b)
+                            break
+                        }
+                    }
+                }
             }
         }
 
@@ -139,6 +157,7 @@ class MapFragment:SupportMapFragment(),
         recenter()
         gmap!!.addMarker(
             MarkerOptions()
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
                 .snippet(""+(Math.round(distance!!/1000*100)/100.0)+"km")
                 .title(name)
                 .position(LatLng(lat,lon)))

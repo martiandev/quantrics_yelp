@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.quantrics.yelp.app.Yelp
 import com.quantrics.yelp.network.NetworkViewModel
 import com.quantrics.yelp.view.adapter.CategoryAdapter
+import com.quantrics.yelp.view.adapter.MapRequestListener
 import com.quantrics.yelp.view.adapter.ScheduleAdapter
 import javax.inject.Inject
 
@@ -31,7 +32,9 @@ class DetailFragment():Fragment(){
     var b:Business?=null
     lateinit var iv_poster:ImageView
     lateinit var tv_rating:TextView
+    lateinit var tv_empty:TextView
     lateinit var bt_call:TextView
+    lateinit var bt_map:TextView
     lateinit var tv_address:TextView
     lateinit var rv_category:RecyclerView
     lateinit var rv_schedule:RecyclerView
@@ -55,8 +58,13 @@ class DetailFragment():Fragment(){
         super.onViewCreated(view, savedInstanceState)
         iv_poster = view.findViewById(R.id.iv_poster)
         tv_rating = view.findViewById(R.id.tv_rating)
+        tv_empty = view.findViewById(R.id.tv_empty)
         tv_address = view.findViewById(R.id.tv_address)
         bt_call = view.findViewById(R.id.bt_call)
+        bt_map = view.findViewById(R.id.bt_find_on_map)
+        bt_map.setOnClickListener {
+            (activity as MapRequestListener).showOnMap(b!!)
+        }
         rv_category = view.findViewById(R.id.rv_category)
         rv_category!!.layoutManager = LinearLayoutManager(requireActivity(),LinearLayoutManager.HORIZONTAL,false)
         rv_schedule = view.findViewById(R.id.rv_schedule)
@@ -78,12 +86,14 @@ class DetailFragment():Fragment(){
                         {
                             if(h.hours.size>0)
                             {
+                                tv_empty!!.visibility=View.GONE
                                var scheduleAdapter = ScheduleAdapter(h.hours.toList())
                                 rv_schedule.adapter=scheduleAdapter
                             }
                             else
                             {
-                                Log.i("HOURS","nd1")
+                                tv_empty!!.visibility=View.VISIBLE
+                                tv_empty!!.text="No Schedule Found"
                             }
 
                         }
@@ -91,11 +101,14 @@ class DetailFragment():Fragment(){
                     }
                     else
                     {
-                        android.util.Log.i("HOURS","nd2")
+                        tv_empty!!.visibility=View.VISIBLE
+                        tv_empty!!.text="No Schedule Found"
                     }
                 }
 
         })
+        tv_empty!!.visibility=View.VISIBLE
+        tv_empty!!.text="Retrieving Schedule"
         nvm.searchDetail(b!!.id!!)
 
         Glide.with(requireActivity())
